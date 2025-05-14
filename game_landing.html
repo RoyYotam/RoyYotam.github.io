@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Landing Page</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+    :root {
+      --bg-gradient-dark: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      --bg-gradient-light: linear-gradient(135deg, #2193b0, #6dd5ed);
+      --btn-gradient-dark: linear-gradient(45deg, #00c6ff, #0072ff);
+      --btn-gradient-light: linear-gradient(45deg, #0072ff, #00c6ff);
+      --text-color-dark: white;
+      --text-color-light: #102a43;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: var(--bg-gradient-dark);
+      color: var(--text-color-dark);
+      animation: fadeIn 2s ease-in;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    body.light-mode {
+      background: var(--bg-gradient-light);
+      color: var(--text-color-light);
+    }
+
+    h1 {
+      margin-bottom: 40px;
+      font-size: 3rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    .button-container {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      min-width: 240px;
+      padding: 18px 36px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      background: var(--btn-gradient-dark);
+      color: white;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.5s;
+      text-align: center;
+    }
+
+    body.light-mode button:not(.icon-toggle) {
+      background: var(--btn-gradient-light);
+      color: white;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .toggle-theme {
+      margin-top: 20px;
+      font-size: 16px;
+      background: transparent;
+      color: inherit;
+      border: 2px solid currentColor;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .icon-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: inherit;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <button class="icon-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+  <h1>Welcome to the Game</h1>
+  <div class="button-container">
+    <button onclick="location.href='game.html'">Play with a Friend</button>
+    <button onclick="location.href='game_ai.html'">Play Against AI</button>
+  </div>
+  <button class="toggle-theme" onclick="toggleTheme()">Toggle Theme</button>
+
+  <script>
+    const iconToggle = document.querySelector('.icon-toggle');
+
+    function setTheme(mode) {
+      document.body.classList.toggle('light-mode', mode === 'light');
+      localStorage.setItem('theme', mode);
+      iconToggle.textContent = mode === 'light' ? '🌞' : '🌙';
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.contains('light-mode');
+      setTheme(isLight ? 'dark' : 'light');
+    }
+
+    // Initialize theme on load
+    window.onload = () => {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      setTheme(savedTheme);
+    };
+  </script>
+</body>
+</html>
