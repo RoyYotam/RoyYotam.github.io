@@ -3,8 +3,11 @@ function load_key() {
     const loadBtn = document.getElementById('load-btn');
     loadBtn.textContent = 'Loaded!';
     loadBtn.disabled = true;
+
     const apiKey = document.getElementById("apiKey");
     apiKey.disabled = true;
+
+    keyLoaded = true; // allow game interaction
 }
 
 async function sendOpenAIMessage(apiKey, inputMessage) {

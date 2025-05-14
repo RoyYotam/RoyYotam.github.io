@@ -5,22 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Royxigul</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+    :root {
+      --bg-gradient-dark: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      --bg-gradient-light: linear-gradient(135deg, #2193b0, #6dd5ed);
+      --text-color-dark: white;
+      --text-color-light: #102a43;
+    }
+
     body {
-      font-family: sans-serif;
-      background-color: #f2f2f2;
+      font-family: 'Orbitron', sans-serif;
+      background: var(--bg-gradient-dark);
+      color: var(--text-color-dark);
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 2rem;
+      min-height: 100vh;
+      margin: 0;
+      transition: background 0.5s, color 0.5s;
     }
+
+    body.light-mode {
+      background: var(--bg-gradient-light);
+      color: var(--text-color-light);
+    }
+
     h1 {
       margin-bottom: 1rem;
+      font-size: 2.5rem;
     }
+
     .public-board {
       display: grid;
       grid-template-columns: repeat(3, auto);
       gap: 10px;
     }
+
     .local-board {
       display: grid;
       grid-template-columns: repeat(3, 30px);
@@ -29,9 +51,8 @@
       padding: 5px;
       border: 2px solid #999;
       position: relative;
-      width: fit-content;
-      height: fit-content;
     }
+
     .cell {
       width: 30px;
       height: 30px;
@@ -42,34 +63,20 @@
       cursor: pointer;
       font-weight: bold;
     }
+
     .cell.disabled {
       background-color: #eee;
       cursor: not-allowed;
     }
+
     .highlight {
       border: 2px solid red;
     }
+
     .winner-cell {
       background-color: #b2fab4 !important;
     }
-    #reset-btn {
-      position: absolute;
-      top: 20px;
-      right: 60px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    #download-replay {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-    }
+
     .winner-overlay {
       position: absolute;
       top: 0;
@@ -85,20 +92,84 @@
       color: #444;
       pointer-events: none;
     }
+
     .global-winner-board {
       box-shadow: 0 0 10px 4px #7ed957;
       position: relative;
     }
+
+    #reset-btn, #download-replay {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-size: 1.25rem;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .icon-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: inherit;
+    }
+
+    label {
+      margin-top: 20px;
+      font-size: 1rem;
+    }
+
+    input[type="text"] {
+      padding: 5px 10px;
+      margin-left: 10px;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    button#load-btn {
+      margin-left: 10px;
+      font-size: 0.9rem;
+      padding: 5px 10px;
+      font-family: 'Orbitron', sans-serif;
+      cursor: pointer;
+    }
+
+    pre#output {
+      margin-top: 20px;
+      width: 80%;
+      max-width: 600px;
+      background: rgba(255,255,255,0.2);
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
   </style>
 </head>
 <body>
+  <button class="icon-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
 
   <script src="res/js/main_prompt.js"></script>
   <script src="res/js/prompt_utils.js"></script>
 
-  <h1>Royxigul
-    <button id="reset-btn" title="Reset Game">🔄</button>
-    <button id="download-replay" title="Download Replay">💾</button>
+  <h1>
+    Royxigul
+    <span class="controls">
+      <button id="reset-btn" title="Reset Game">🔄</button>
+      <button id="download-replay" title="Download Replay">💾</button>
+    </span>
   </h1>
   <div id="board" class="public-board"></div>
   <p id="status"></p>
@@ -117,6 +188,7 @@
     const downloadBtn = document.getElementById('download-replay');
 
     let currentPlayer, nextBoardIndex, publicBoard, globalWin, moveHistory, ids_history;
+    let keyLoaded = false;
 
     function checkWin(cells) {
       const wins = [
@@ -168,10 +240,7 @@
           if (cell) {
             cellEl.textContent = cell;
             cellEl.classList.add('disabled');
-          } else if (
-            (nextBoardIndex === null || nextBoardIndex === bIndex) &&
-            !board.winner
-          ) {
+          } else if ((nextBoardIndex === null || nextBoardIndex === bIndex) && !board.winner) {
             cellEl.onclick = async () => await handleMove(bIndex, cIndex);
           } else {
             cellEl.classList.add('disabled');
@@ -197,6 +266,11 @@
     }
 
     async function handleMove(bIndex, cIndex) {
+      if (!keyLoaded) {
+        document.getElementById("output").textContent = "Please load your API key first.\n";
+        return;
+      }
+
       const board = publicBoard[bIndex];
       if (board.cells[cIndex] || board.winner) return;
 
@@ -227,55 +301,34 @@
 
       if (currentPlayer === 'O') {
         const result = [
-                {
-                  role: "system",
-                  content: [
-                          {
-                            type: "input_text",
-                            text: window.systemPrompt
-                          }
-                          ]
-                }
-                ];
-
+          {
+            role: "system",
+            content: [ { type: "input_text", text: window.systemPrompt } ]
+          }
+        ];
 
         let assistantIndex = 0;
-
         for (const move of moveHistory) {
           const entry = {
             role: move.player === "X" ? "user" : "assistant",
-            content: [
-                    {
-                      type:  move.player === "X" ? "input_text" : "output_text",
-                      text: `${move.board}${move.cell}`
-                    }
-                    ]
+            content: [ { type: move.player === "X" ? "input_text" : "output_text", text: `${move.board}${move.cell}` } ]
           };
-
           if (move.player === "O") {
             entry.id = ids_history[assistantIndex];
             assistantIndex++;
           }
-
           result.push(entry);
         }
 
         result.push({
-            role: "user",
-            content: [
-                    {
-                      type: "input_text",
-                      text: `Available moves: ${availableMoves(cIndex)}`
-                    }
-                    ]
-          });
+          role: "user",
+          content: [ { type: "input_text", text: `Available moves: ${availableMoves(cIndex)}` } ]
+        });
 
         const res = await runTurn(result);
-
         ids_history.push(res[1]);
-        const board = parseInt(res[0][0])
-        const cell = parseInt(res[0][1])
-
+        const board = parseInt(res[0][0]);
+        const cell = parseInt(res[0][1]);
         await handleMove(board - 1, cell - 1);
       }
     }
@@ -284,27 +337,17 @@
       const available = [];
       const board = publicBoard[cIndex];
 
-      // If the board is won or full, return all available moves across all boards
       if (board.winner || board.cells.every(cell => cell)) {
-
         for (let i = 0; i < publicBoard.length; i++) {
           const b = publicBoard[i];
-          if (b.winner || b.cells.every(cell => cell)) {
-            continue; // skip full or won boards
-          }
-
+          if (b.winner || b.cells.every(cell => cell)) continue;
           for (let j = 0; j < b.cells.length; j++) {
-            if (!b.cells[j]) {
-              available.push(`${i + 1}${j + 1}`);
-            }
+            if (!b.cells[j]) available.push(`${i + 1}${j + 1}`);
           }
         }
       } else {
-        // Return indices of unfilled cells
         for (let i = 0; i < board.cells.length; i++) {
-          if (!board.cells[i]) {
-            available.push(`${cIndex + 1}${i + 1}`);
-          }
+          if (!board.cells[i]) available.push(`${cIndex + 1}${i + 1}`);
         }
       }
 
@@ -317,9 +360,7 @@
     }
 
     function downloadReplay() {
-      const blob = new Blob([
-        JSON.stringify({ moves: moveHistory }, null, 2)
-      ], { type: 'application/json' });
+      const blob = new Blob([ JSON.stringify({ moves: moveHistory }, null, 2) ], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -332,7 +373,23 @@
     downloadBtn.onclick = downloadReplay;
 
     (async () => { await createGame(); })();
-    // await createGame();
+  </script>
+
+ <script>
+    const iconToggle = document.querySelector('.icon-toggle');
+    function setTheme(mode) {
+      document.body.classList.toggle('light-mode', mode === 'light');
+      localStorage.setItem('theme', mode);
+      iconToggle.textContent = mode === 'light' ? '🌞' : '🌙';
+    }
+    function toggleTheme() {
+      const isLight = document.body.classList.contains('light-mode');
+      setTheme(isLight ? 'dark' : 'light');
+    }
+    window.onload = () => {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      setTheme(savedTheme);
+    };
   </script>
 </body>
 </html>
