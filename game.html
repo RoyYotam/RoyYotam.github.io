@@ -5,22 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Royxigul</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+    :root {
+      --bg-gradient-dark: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      --bg-gradient-light: linear-gradient(135deg, #2193b0, #6dd5ed);
+      --text-color-dark: white;
+      --text-color-light: #102a43;
+    }
+
     body {
-      font-family: sans-serif;
-      background-color: #f2f2f2;
+      font-family: 'Orbitron', sans-serif;
+      background: var(--bg-gradient-dark);
+      color: var(--text-color-dark);
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 2rem;
+      min-height: 100vh;
+      margin: 0;
+      transition: background 0.5s, color 0.5s;
     }
+
+    body.light-mode {
+      background: var(--bg-gradient-light);
+      color: var(--text-color-light);
+    }
+
     h1 {
       margin-bottom: 1rem;
+      font-size: 2.5rem;
     }
+
     .public-board {
       display: grid;
       grid-template-columns: repeat(3, auto);
       gap: 10px;
     }
+
     .local-board {
       display: grid;
       grid-template-columns: repeat(3, 30px);
@@ -29,9 +51,8 @@
       padding: 5px;
       border: 2px solid #999;
       position: relative;
-      width: fit-content;
-      height: fit-content;
     }
+
     .cell {
       width: 30px;
       height: 30px;
@@ -42,34 +63,20 @@
       cursor: pointer;
       font-weight: bold;
     }
+
     .cell.disabled {
       background-color: #eee;
       cursor: not-allowed;
     }
+
     .highlight {
       border: 2px solid red;
     }
+
     .winner-cell {
       background-color: #b2fab4 !important;
     }
-    #reset-btn {
-      position: absolute;
-      top: 20px;
-      right: 60px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    #download-replay {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-    }
+
     .winner-overlay {
       position: absolute;
       top: 0;
@@ -85,16 +92,51 @@
       color: #444;
       pointer-events: none;
     }
+
     .global-winner-board {
       box-shadow: 0 0 10px 4px #7ed957;
       position: relative;
     }
+
+    #reset-btn, #download-replay {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-size: 1.25rem;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .icon-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: inherit;
+    }
   </style>
 </head>
 <body>
-  <h1>Royxigul
-    <button id="reset-btn" title="Reset Game">🔄</button>
-    <button id="download-replay" title="Download Replay">💾</button>
+  <button class="icon-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+  <h1>
+    Royxigul
+    <span class="controls">
+      <button id="reset-btn" title="Reset Game">🔄</button>
+      <button id="download-replay" title="Download Replay">💾</button>
+    </span>
   </h1>
   <div id="board" class="public-board"></div>
   <p id="status"></p>
@@ -103,6 +145,7 @@
     const statusText = document.getElementById('status');
     const resetBtn = document.getElementById('reset-btn');
     const downloadBtn = document.getElementById('download-replay');
+    const iconToggle = document.querySelector('.icon-toggle');
 
     let currentPlayer, nextBoardIndex, publicBoard, globalWin, moveHistory;
 
@@ -228,10 +271,25 @@
       URL.revokeObjectURL(url);
     }
 
+    function setTheme(mode) {
+      document.body.classList.toggle('light-mode', mode === 'light');
+      localStorage.setItem('theme', mode);
+      iconToggle.textContent = mode === 'light' ? '🌞' : '🌙';
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.contains('light-mode');
+      setTheme(isLight ? 'dark' : 'light');
+    }
+
+    window.onload = () => {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      setTheme(savedTheme);
+      createGame();
+    };
+
     resetBtn.onclick = createGame;
     downloadBtn.onclick = downloadReplay;
-
-    createGame();
   </script>
 </body>
 </html>
