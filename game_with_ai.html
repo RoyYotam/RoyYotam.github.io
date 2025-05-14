@@ -41,6 +41,12 @@
       display: grid;
       grid-template-columns: repeat(3, auto);
       gap: 10px;
+      transition: filter 0.3s ease, pointer-events 0.3s ease;
+    }
+
+    .public-board.locked {
+      filter: blur(4px);
+      pointer-events: none;
     }
 
     .local-board {
@@ -171,7 +177,7 @@
       <button id="download-replay" title="Download Replay">💾</button>
     </span>
   </h1>
-  <div id="board" class="public-board"></div>
+  <div id="board" class="public-board locked"></div>
   <p id="status"></p>
 
   <label>API Key:

@@ -8,6 +8,7 @@ function load_key() {
     apiKey.disabled = true;
 
     keyLoaded = true; // allow game interaction
+    document.getElementById('board').classList.remove('locked');
 }
 
 async function sendOpenAIMessage(apiKey, inputMessage) {
