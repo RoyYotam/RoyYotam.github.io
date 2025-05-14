@@ -162,9 +162,25 @@
       border-radius: 8px;
       overflow-x: auto;
     }
+
+    .back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: transparent;
+  border: 2px solid currentColor;
+  color: inherit;
+  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+}
   </style>
 </head>
 <body>
+<button id="back-btn" class="back-button" onclick="goBack()">⬅ Back</button>
+
   <button class="icon-toggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
 
   <script src="res/js/main_prompt.js"></script>
@@ -397,5 +413,11 @@
       setTheme(savedTheme);
     };
   </script>
+
+<script>
+  function goBack() {
+    window.history.back();
+  }
+</script>
 </body>
 </html>
